@@ -1,5 +1,5 @@
 streamlipickle
-import string
+string
 nltk
 stopwords
 PorterStemmer

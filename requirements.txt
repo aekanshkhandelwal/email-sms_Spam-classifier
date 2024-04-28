@@ -1,6 +1,5 @@
-import streamlit
-import pickle
+streamlipickle
 import string
-from nltk.corpus import stopwords
-import nltk
-from nltk.stem.porter import PorterStemmer
+nltk
+stopwords
+PorterStemmer

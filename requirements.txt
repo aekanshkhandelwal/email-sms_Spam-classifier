@@ -1,4 +1,5 @@
-streamlipickle
+streamlit
+pickle
 string
 nltk
 stopwords

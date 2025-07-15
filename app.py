@@ -1,16 +1,26 @@
 import streamlit as st
 import pickle
 import string
-from nltk.corpus import stopwords
 import nltk
+from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
+from nltk.tokenize import TreebankWordTokenizer
+
+# Use Treebank tokenizer to avoid punkt_tab issue
+tokenizer = TreebankWordTokenizer()
+
+# Ensure stopwords are available
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords')
 
 ps = PorterStemmer()
 
-
+# Text preprocessing function
 def transform_text(text):
     text = text.lower()
-    text = nltk.word_tokenize(text)
+    text = tokenizer.tokenize(text)  # ✅ punkt-free tokenizer
 
     y = []
     for i in text:
@@ -32,24 +42,30 @@ def transform_text(text):
 
     return " ".join(y)
 
-
+# Load vectorizer and model
 tfidf = pickle.load(open('vectorizer.pkl', 'rb'))
 model = pickle.load(open('model.pkl', 'rb'))
 
-st.title("Aekansh\'s Email/SMS Spam Classifier")
+# Streamlit UI
+st.title("Aekansh's Email/SMS Spam Classifier")
 
 input_sms = st.text_area("Enter the Message")
-# preprocessing
+
 if st.button('Check'):
-    transform_sms = transform_text(input_sms)
-    # vectorize
-    vector_input = tfidf.transform([transform_sms])
-    # predict
-    result = model.predict(vector_input)[0]
-    # display
-    if result == 1:
-        st.header("Spam")
-    elif result == ' ':
-        st.header("Enter the Text to Check")
+    if input_sms.strip() == "":
+        st.warning("Please enter a message to classify.")
     else:
-        st.header("Not Spam")
+        # 1. Preprocess
+        transform_sms = transform_text(input_sms)
+
+        # 2. Vectorize
+        vector_input = tfidf.transform([transform_sms])
+
+        # 3. Predict
+        result = model.predict(vector_input)[0]
+
+        # 4. Display
+        if result == 1:
+            st.error("⚠️ Spam")
+        else:
+            st.success("✅ Not Spam")

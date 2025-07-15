@@ -1,9 +1,10 @@
 import streamlit as st
 import pickle
 import string
-from nltk.corpus import stopwords
 import nltk
+from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
+from nltk.tokenize import word_tokenize  # ✅ Fixed tokenizer import
 
 # Ensure required NLTK resources are available
 try:
@@ -18,10 +19,10 @@ except LookupError:
 
 ps = PorterStemmer()
 
-
+# Text preprocessing function
 def transform_text(text):
     text = text.lower()
-    text = nltk.word_tokenize(text)
+    text = word_tokenize(text)  # ✅ Avoids punkt_tab bug
 
     y = []
     for i in text:
@@ -43,24 +44,29 @@ def transform_text(text):
 
     return " ".join(y)
 
-
+# Load vectorizer and model
 tfidf = pickle.load(open('vectorizer.pkl', 'rb'))
 model = pickle.load(open('model.pkl', 'rb'))
 
-st.title("Aekansh\'s Email/SMS Spam Classifier")
+# Streamlit UI
+st.title("Aekansh's Email/SMS Spam Classifier")
 
 input_sms = st.text_area("Enter the Message")
-# preprocessing
+
 if st.button('Check'):
+    # 1. Preprocess
     transform_sms = transform_text(input_sms)
-    # vectorize
+
+    # 2. Vectorize
     vector_input = tfidf.transform([transform_sms])
-    # predict
+
+    # 3. Predict
     result = model.predict(vector_input)[0]
-    # display
+
+    # 4. Display
     if result == 1:
-        st.header("Spam")
-    elif result == ' ':
-        st.header("Enter the Text to Check")
+        st.header("⚠️ Spam")
+    elif input_sms.strip() == "":
+        st.header("Please enter some text.")
     else:
-        st.header("Not Spam")
+        st.header("✅ Not Spam")
